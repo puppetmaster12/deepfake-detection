@@ -2,6 +2,7 @@ import numpy as np
 import os
 from tqdm import tqdm
 import pandas as pd
+from preprocessor import VideoPreprocessor
 import torch
 import torch.nn as nn
 import torch.optim as optim
