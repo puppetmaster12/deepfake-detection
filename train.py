@@ -2,6 +2,7 @@ import numpy as np
 import os
 from tqdm import tqdm
 import pandas as pd
+import json
 from scripts.preprocessor import VideoPreprocessor
 import torch
 import torch.nn as nn
@@ -10,27 +11,21 @@ from torch.utils.data import DataLoader, Dataset
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 
 # Function to load csv files to numpy array
-def load_csv_file(file_path):
-    df = pd.read_csv(file_path, index_col=0)
-    # Fill row with 0 if less than 300 frames
-    frame_count = 300 - len(df)
-    if(frame_count > 0):
-        for i in range(frame_count):
-            df.loc[len(df) + i] = 0
-       
-    label = df['label'].iloc[0]
-    df = df.loc[:,~df.columns.str.startswith('label')]
-    df = df.loc[:,~df.columns.str.startswith('Unnamed')]
-    
-    # Normalize the dataframe
-    # normalized_df = df.copy()
-    # for column in normalized_df.columns:
-    #     normalized_df[column] = normalized_df[column] / normalized_df[column].abs().max()
+def load_feature(feature_path):
+    df = pd.read_csv(feature_path, index_col=0, nrows=300)
         
-    # print(normalized_df.head())
     frame_features = df.to_numpy()
     
-    return frame_features, label
+    return frame_features
+
+def load_labels(label_path):
+    with open(label_path, "r") as json_file:
+        labels = json.load(json_file)
+    
+    for key in labels:
+        labels[key] = int(labels[key])
+        
+    return labels
 
 # Dataset class with a dataloader
 class VideoDataset(Dataset):
@@ -55,7 +50,11 @@ class LSTMModel(nn.Module):
         super(LSTMModel, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
         self.bn = nn.BatchNorm1d(hidden_size)
-        self.fc = nn.Linear(hidden_size, output_size)
+        self.fc = nn.Sequential(
+            nn.Linear(hidden_size, 64),
+            nn.ReLU(),
+            nn.Linear(64, output_size)
+        )
         
     # One cycle of forward propogation
     def forward(self, x):
@@ -67,38 +66,42 @@ class LSTMModel(nn.Module):
 
 video_data = []
 labels = []
-dataset_path = 'datasetv1/features/'
+dataset_path = 'datasetv1/features/final'
+labels_path = 'datasetv1/labels/labels.json'
+
+# Load labels
+labels_all = load_labels(labels_path)
 
 # Iterate over csv files and load into list as numpy array
-# Labels loaded separately
 print("Loading Dataset ==================================")
 for filename in tqdm(os.listdir(dataset_path)):
     if filename.endswith('.csv'):
         file_path = os.path.join(dataset_path, filename)
+        video_id = filename.split(".")[0]
+        labels.append(labels_all[video_id])
         
-        frame_features, label = load_csv_file(file_path)
-        labels.append(label)
+        frame_features = load_feature(file_path)
         video_data.append(frame_features)
 print("Dataset loaded ===================================")
-
+print(len(labels))
 # Put all video sequences / frames into one dataset
 sequence_length = 300 # 300 frames per video
 dataset = VideoDataset(video_data, labels, sequence_length)
 
 # Dataset split
-train_size = int(0.8 * len(dataset))
+train_size = int(0.7 * len(dataset))
 val_size = len(dataset) - train_size
 train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
 
 # Pytorch dataloader for training and validation data
-batch_size = 16
+batch_size = 128
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
 # Model Configurations
 input_size = len(video_data[0][0]) # Total number of features
-hidden_size = 64
-num_layers = 2 # TODO: tune
+hidden_size = 32
+num_layers = 8 # TODO: tune
 output_size = 1 # TODO: tune
 
 # Model initialization
@@ -108,14 +111,15 @@ lstm_model.to(device)
 
 # Loss function and Optimizer function
 criterion = nn.BCEWithLogitsLoss()
-optimizer = optim.Adam(lstm_model.parameters(), lr=0.01) # TODO: tune
+optimizer = optim.Adam(lstm_model.parameters(), lr=0.0001) # TODO: tune
 
 # Start Training
-num_of_epochs = 10 # TODO: tune
+num_of_epochs = 930 # TODO: tune
 
 for epoch in range(num_of_epochs):
     lstm_model.train()
     for frames, labels in train_loader:
+        
         frames = frames.to(torch.float32).to(device)
         labels = labels.to(torch.float32).unsqueeze(1).to(device)
         

@@ -11,8 +11,8 @@ class VideoFeatureExtractor:
     
     # Ensure output directory is available or create
     def create_output_directory(self):
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
     
     # Iterating through videos
     def extract_features(self):
@@ -23,7 +23,7 @@ class VideoFeatureExtractor:
                 
                 # Feature Extraction
                 command = [
-                    open_face_exe,
+                    self.openface_exe,
                     "-f", video_path,
                     "-of", output_file,
                     "-q" 
@@ -47,11 +47,7 @@ def main():
     
 if __name__=="__main__":
     main()
-    
-# Path definition
-data_path = 'Celeb-real/'
-open_face_exe = 'openface2/FeatureExtraction.exe'
-output_path = 'output'
+
 
     
 
