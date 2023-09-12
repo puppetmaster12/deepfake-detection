@@ -92,7 +92,20 @@ class VideoPreprocessor:
                     shutil.copyfile(f_path, d_path)
                 if labels_file[f_name] == '0':
                     shutil.copyfile(f_path, r_path)
+        
+    def extract_dfdc(self):
+        meta_path = os.path.join(self.feature_path, 'metadata.json')
+        abs_path = os.path.abspath(self.feature_path)
+        r_path = os.path.abspath('dfdc/real')
+        
+        with open(meta_path, 'r') as json_file:
+            meta_file = json.load(json_file)
             
+        for video_name in meta_file:
+            video_path = os.path.join(abs_path, video_name)
+            if meta_file[video_name]['label'] == 'REAL':
+                shutil.copy(video_path, r_path)
+        
                 
             
                 
@@ -100,6 +113,7 @@ def main():
     parser = argparse.ArgumentParser(description="Preprocessing class for both csv feature maps and trimming function for videos")
     parser.add_argument("--trim", required=False, help="Used when trimming videos")
     parser.add_argument("--fill", required=False, help="Used when filling remaining frames")
+    parser.add_argument("--extract", required=False, help="Used to extract real or fake videos from a directory")
     parser.add_argument("--bal", required=False, help="Used when balancing the feature classes")
     parser.add_argument("--input_dir", required=True, help="Path to the csv or video files for preprocessing")
     parser.add_argument("--output_dir", required=True, help="Path to save the preprocessed files")
@@ -113,6 +127,8 @@ def main():
         preprocessor.frame_fill()
     if args.bal == "true":
         preprocessor.balance_class()
+    if args.extract == 'true':
+        preprocessor.extract_dfdc()
     else:
         preprocessor.preprocess_csv()    
     

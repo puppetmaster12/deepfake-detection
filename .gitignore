@@ -8,3 +8,8 @@ Celeb-DF-v2.zip
 /datasetv1/feature_maps
 /datasetv1/features/real
 /datasetv1/features/fake
+/datasetv2/feature_maps
+/FFPP
+/datasetv2/trimmed
+/dfdc
+/datasetv2/cnn_features
