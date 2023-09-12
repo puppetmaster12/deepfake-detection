@@ -4,12 +4,14 @@
 /YouTube-real
 Celeb-DF-v2.zip
 /openface2
-/datasetv1/raw
-/datasetv1/feature_maps
-/datasetv1/features/real
-/datasetv1/features/fake
-/datasetv2/feature_maps
+# /datasetv1/raw
+# /datasetv1/feature_maps
+# /datasetv1/features/real
+# /datasetv1/features/fake
+# /datasetv2/feature_maps
 /FFPP
-/datasetv2/trimmed
+# /datasetv2/trimmed
 /dfdc
-/datasetv2/cnn_features
+# /datasetv2/cnn_features
+/datasetv2/
+/datasetv1/
