@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 from torchvision.models import resnet18
+from torch.utils.data import Dataset
 from sklearn.preprocessing import LabelEncoder
 import argparse
 
@@ -13,7 +14,8 @@ import argparse
 class ImageDataset(Dataset):
     def __init__(self, image_dir, transform=None):
         self.image_dir = image_dir
-        self.image_files = [f for f in os.listdir(image_dir) if f.endswith('.jpg') or f.endswith('.png')]
+        self.image_files = [f for f in os.listdir(image_dir) if f.endswith('.jpg') or f.endswith('.png') or f.endswith('.bmp')]
+        
         self.transform = transform
 
     def __len__(self):
@@ -42,9 +44,9 @@ class FeatureExtractor(nn.Module):
 def extract_features_from_images(input_image_dir, output_feature_dir):
     # Create the output directory if it doesn't exist
     os.makedirs(output_feature_dir, exist_ok=True)
-
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Load the custom ResNet-based feature extractor
-    feature_extractor = FeatureExtractor()
+    feature_extractor = FeatureExtractor().to(device)
     feature_extractor.eval()  # Set to evaluation mode (no gradient computation)
 
     # Define transformations for images (resize and normalize)
@@ -66,19 +68,18 @@ def extract_features_from_images(input_image_dir, output_feature_dir):
         
         # Extract features from images
         features_list = []
-        
+        # print(image_dataset)
         for image_batch in image_dataset:
             # Extract features for this image batch
             with torch.no_grad():  # Disable gradient computation for inference
-                features = feature_extractor(image_batch.unsqueeze(0))
+                features = feature_extractor(image_batch.to(device).unsqueeze(0))
             features_list.append(features)
-        
         # Stack features for all images in this subdirectory
         features = torch.cat(features_list)
         
         # Reshape features to match the number of images
         num_images = features.shape[0]
-        features = features.view(num_images, -1).numpy()
+        features = features.view(num_images, -1).cpu().numpy()
         
         # Load the labels and encode them (you should load labels from your dataset)
         labels = []  # You should load the labels from your dataset
