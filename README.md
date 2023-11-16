@@ -2,7 +2,8 @@
 This project aims to develop a minimum viable product for detecting deepfake videos using the LSTM architecture and OpenFace2. The project is a work in progress.
 
 <h2>Project Overview</h2>
-<p>The project is built to detect deepfake videos using LSTM in combination with various feature extraction techniques. Data sources are explained below. The initial data source was Celeb-DF. Later data from Kaggle was incorporated. The scope of the project is to detect deepfake videos using the intensity of action units and how they represent the difference between real and fake videos.</p>
+<p>The project is built to detect deepfake videos using LSTM in combination with OpenFace2 for facial feature extraction. Celeb-DF is the primary data source used in training the model. Features 
+extraction from the videos are used to train the model in the form of csv files. The project currently achieves a validation accuracy of 77% and we are hoping to improve the model and incorporate more techniques into it.</p>
 
 <h2>Dependencies</h2>
 <ul>
@@ -13,7 +14,6 @@ This project aims to develop a minimum viable product for detecting deepfake vid
 </ul>
 
 <h2>OpenFace 2</h2>
-<p>Open Face 2 was installed on a windows computer using the Windows installation guide on the OpenFace 2 <a href="https://github.com/TadasBaltrusaitis/OpenFace/wiki">WIKI</a>. The OpenFace 2 Windows implementation provides a GUI. This GUI was used to initially load 1706 videos of both fake and real and extract features from these videos.</p>
-<b><p>Current TODO: Expand the dataset using other sources</p></b>
+<p><a href="https://github.com/TadasBaltrusaitis/OpenFace">OpenFace 2</a> is used in the project for facial feature extraction. It is the main feature source of the project. OpenFace 2 can be installed by cloning their <a href="https://github.com/TadasBaltrusaitis/OpenFace">repository</a> and following the installation guide in their <a href="https://github.com/TadasBaltrusaitis/OpenFace/wiki#installation">wiki</a>. The Ubuntu installation was followed for this project. The "FeatureExtraction" executable file is used to extract features in a Python script before being preprocessed and used for training.</p>
 
 <h2>Data Preprocessing</h2>
