@@ -13,5 +13,5 @@ Celeb-DF-v2.zip
 # /datasetv2/trimmed
 /dfdc
 # /datasetv2/cnn_features
-/datasetv2/
-/datasetv1/
+/datasetv2
+/datasetv1
